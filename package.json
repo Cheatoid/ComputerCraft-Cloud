@@ -1,0 +1,24 @@
+{
+  "private": true,
+  "name": "computercraft-cloud",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cheatoid/ComputerCraft-Cloud.git"
+  },
+  "author": "Cheatoid",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Cheatoid/ComputerCraft-Cloud/issues"
+  },
+  "homepage": "https://github.com/Cheatoid/ComputerCraft-Cloud#readme",
+  "engines": {
+    "node": "16.14.x",
+    "npm": "8.4.x"
+  }
+}
