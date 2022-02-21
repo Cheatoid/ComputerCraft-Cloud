@@ -1,4 +1,6 @@
-local string_match, string_format, http_get, load, pcall = string.match, string.format, http.get, load, pcall
+assert(http, "HTTP API is disabled")
+
+local string_match, string_format, http_get, load, pcall = string.match, string.format, http.get, load or loadstring, pcall
 
 --- Dynamically fetch and execute a Lua script (from GitHub repository).
 ---@param libraryId string Library identifier (in 'AuthorName:LibraryName' format).
