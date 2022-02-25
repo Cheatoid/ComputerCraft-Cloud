@@ -1,5 +1,4 @@
-local isolated_global, setup_table
-setup_table = function(t, out, lookup)
+local function setup_table(t, out, lookup)
   t = t or _G
   lookup = lookup or {}
   lookup[t] = true
@@ -27,7 +26,7 @@ setup_table = function(t, out, lookup)
   return out
 end
 
-isolated_global = setup_table()
+local isolated_global = setup_table()
 _G.import = function(fileName)
   local result = { pcall(loadfile, fileName, 'bt', isolated_global) }
   assert(result[1], result[2])
