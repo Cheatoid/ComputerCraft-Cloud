@@ -120,7 +120,7 @@ if (krist) {
 }
 
 // Genarate fonts using 3x3 chars per a character. (1 character is 6x9 pixels)
-declare type FontData = { [char: string]: [ string[], string[] ] };
+declare type FontData = { [char: string]: [string[], string[]] };
 const fonts = [] as FontData[];
 const firstFont = {} as FontData;
 {
@@ -187,7 +187,7 @@ function generateFontSize(size: number, yeld?: boolean) {
         table.insert(temp2, table.concat(back2));
         table.insert(temp2, table.concat(back3));
       }
-      nextFont[thisChar] = [ temp, temp2 ];
+      nextFont[thisChar] = [temp, temp2];
       if (yeld) {
         const eventName = "Font" + f + "Yeld" + char;
         os.queueEvent(eventName);
@@ -270,12 +270,12 @@ function press(terminal: Terminal, data: string[][], x?: number, y?: number) {
  * @param blit
  * @returns
  */
-function makeText(size: number, text: string, nFC: string|colors.Color, nBC: string|colors.Color, blit?: boolean): [ string[], string[], string[] ] {
+function makeText(size: number, text: string, nFC: string|colors.Color, nBC: string|colors.Color, blit?: boolean): [string[], string[], string[]] {
   //if (type(text) != "string") { error("Not a String", 3); } // nope.
   const cFC = type(nFC) == "string" ? string.sub(nFC as string, 1, 1) : (tHex[nFC] || error("Wrong Front Color", 3));
   const cBC = type(nBC) == "string" ? string.sub(nBC as string, 1, 1) : (tHex[nBC] || error("Wrong Back Color", 3));
-  const font = fonts[size] || error("Wrong font size selected", 3);
-  if (text == "") { return [ [""], [""], [""] ]; }
+  const font = fonts[size - 1] || error("Wrong font size selected", 3);
+  if (text == "") { return [[""], [""], [""]]; }
   const input = [] as string[];
   for (const [ch] of string.gmatch(text, ".")) {
     table.insert(input, ch);
@@ -305,7 +305,7 @@ function makeText(size: number, text: string, nFC: string|colors.Color, nBC: str
     tFront[line - 1] = table.concat(front);
     tBack[line - 1] = table.concat(back);
   }
-  return [ lines, tFront, tBack ];
+  return [lines, tFront, tBack];
 }
 
 /**

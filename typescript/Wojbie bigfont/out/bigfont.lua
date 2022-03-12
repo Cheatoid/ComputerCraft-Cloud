@@ -248,7 +248,7 @@ end
 local function makeText(size, text, nFC, nBC, blit)
     local cFC = type(nFC) == "string" and string.sub(nFC, 1, 1) or (tHex[nFC] or error("Wrong Front Color", 3))
     local cBC = type(nBC) == "string" and string.sub(nBC, 1, 1) or (tHex[nBC] or error("Wrong Back Color", 3))
-    local font = fonts[size + 1] or error("Wrong font size selected", 3)
+    local font = fonts[size] or error("Wrong font size selected", 3)
     if text == "" then
         return {{""}, {""}, {""}}
     end
