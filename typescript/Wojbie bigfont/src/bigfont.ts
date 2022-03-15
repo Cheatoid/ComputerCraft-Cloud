@@ -121,6 +121,7 @@ if (krist) {
 
 // Genarate fonts using 3x3 chars per a character. (1 character is 6x9 pixels)
 declare type FontData = { [char: string]: [string[], string[]] };
+declare type FontSize = 1|2|3|4|5|6;
 const fonts = [] as FontData[];
 const firstFont = {} as FontData;
 {
@@ -141,14 +142,14 @@ const firstFont = {} as FontData;
           string.sub(rawFont[1][i + 1], j, j + 2)
         ]
       ];
-      char = char + 1;
+      char++;
     }
   }
   fonts[0] = firstFont;
 }
 
 const inverter = { "0": "1", "1": "0" };
-function generateFontSize(size: number, yeld?: boolean) {
+function generateFontSize(size: FontSize, yeld?: boolean) {
   if (size <= fonts.length) { return true; }
   for (const f of $range(fonts.length + 1, size)) {
     // Automagically make bigger fonts using firstFont and fonts[f-2].
@@ -218,15 +219,11 @@ const tHex = {
   [colors.brown    ]: "c", // colors.toBlit(colors.brown)
   [colors.green    ]: "d", // colors.toBlit(colors.green)
   [colors.red      ]: "e", // colors.toBlit(colors.red)
-  [colors.black    ]: "f", // colors.toBlit(colors.black)
+  [colors.black    ]: "f"  // colors.toBlit(colors.black)
 };
 
 /**
  * Write data on terminal in specified location. Can scroll.
- * @param terminal
- * @param data
- * @param x
- * @param y
  */
 function stamp(terminal: Terminal, data: string[][], x?: number, y?: number) {
   const [oX, oY] = terminal.getSize();
@@ -245,10 +242,6 @@ function stamp(terminal: Terminal, data: string[][], x?: number, y?: number) {
 
 /**
  * Write data on terminal in specified location. No scroll.
- * @param terminal
- * @param data
- * @param x
- * @param y
  */
 function press(terminal: Terminal, data: string[][], x?: number, y?: number) {
   const [oX, oY] = terminal.getSize();
@@ -263,17 +256,11 @@ function press(terminal: Terminal, data: string[][], x?: number, y?: number) {
 
 /**
  * Generate data from strings for data and colors.
- * @param size
- * @param text
- * @param nFC
- * @param nBC
- * @param blit
- * @returns
  */
-function makeText(size: number, text: string, nFC: string|colors.Color, nBC: string|colors.Color, blit?: boolean): [string[], string[], string[]] {
-  //if (type(text) != "string") { error("Not a String", 3); } // nope.
-  const cFC = type(nFC) == "string" ? string.sub(nFC as string, 1, 1) : (tHex[nFC] || error("Wrong Front Color", 3));
-  const cBC = type(nBC) == "string" ? string.sub(nBC as string, 1, 1) : (tHex[nBC] || error("Wrong Back Color", 3));
+function makeText(size: FontSize, text: string, nFC: string|colors.Color, nBC: string|colors.Color, blit?: boolean): [string[], string[], string[]] {
+  //if (typeof text != "string") { error("Not a String", 3); } // nope.
+  const cFC = typeof nFC == "string" ? string.sub(nFC as string, 1, 1) : (tHex[nFC] || error("Wrong Front Color", 3));
+  const cBC = typeof nBC == "string" ? string.sub(nBC as string, 1, 1) : (tHex[nBC] || error("Wrong Back Color", 3));
   const font = fonts[size - 1] || error("Wrong font size selected", 3);
   if (text == "") { return [[""], [""], [""]]; }
   const input = [] as string[];
@@ -299,8 +286,8 @@ function makeText(size: number, text: string, nFC: string|colors.Color, nBC: str
     for (const i of $range(1, input.length)) {
       const template = font[input[i - 1]] ? font[input[i - 1]][1][line - 1] : "";
       // a little dirty, until transpiler becomes aware of parenthesis trick.
-      [front[i - 1]] = string.gsub(template, "[01]", blit ? { "0": string.sub(nFC as string, i, i), "1": string.sub(nBC as string, i, i)} : frontSub);
-      [back[i - 1]] = string.gsub(template, "[01]", blit ? { "0": string.sub(nBC as string, i, i), "1": string.sub(nFC as string, i, i)} : backSub);
+      [front[i - 1]] = string.gsub(template, "[01]", blit ? { "0": string.sub(nFC as string, i, i), "1": string.sub(nBC as string, i, i) } : frontSub);
+      [back[i - 1]] = string.gsub(template, "[01]", blit ? { "0": string.sub(nBC as string, i, i), "1": string.sub(nFC as string, i, i) } : backSub);
     }
     tFront[line - 1] = table.concat(front);
     tBack[line - 1] = table.concat(back);
@@ -310,7 +297,7 @@ function makeText(size: number, text: string, nFC: string|colors.Color, nBC: str
 
 /**
  * Writing in big font using current terminal settings.
- * @param text
+ * @param text Text to be written.
  */
 export function bigWrite(text: string) {
   stamp(term, makeText(1, text, term.getTextColor(), term.getBackgroundColor()), ...term.getCursorPos());
@@ -350,39 +337,32 @@ export function hugePrint(text: string) {
   print();
 }
 
-export function writeOn(terminal: Terminal, size: number, text: string, x?: number, y?: number) {
+export function writeOn(terminal: Terminal, size: FontSize, text: string, x?: number, y?: number) {
   press(terminal, makeText(size, text, terminal.getTextColor(), terminal.getBackgroundColor()), x, y);
 }
 
 /**
  * Write/blit string on terminal in specified location.
- * @param terminal
- * @param size
- * @param text
- * @param front
- * @param back
- * @param x
- * @param y
  */
-export function blitOn(terminal: Terminal, size: number, text: string, front: string, back: string, x?: number, y?: number) {
+export function blitOn(terminal: Terminal, size: FontSize, text: string, front: string, back: string, x?: number, y?: number) {
   if (text.length != front.length) { error("Invalid length of text color string", 2); }
   if (text.length != back.length) { error("Invalid length of background color string", 2); }
   press(terminal, makeText(size, text, front, back, true), x, y);
 }
 
-export function makeBlittleText(size: number, text: string, nFC: string|colors.Color, nBC: string|colors.Color) {
+export function makeBlittleText(size: FontSize, text: string, nFC: string|colors.Color, nBC: string|colors.Color) {
   // Somewhat ugly, but I blame the author of the original Lua code for this monstrosity.
-  const out = makeText(size, text, nFC, nBC) as any as {
-    1: string[], 2: string[], 3: string[], height: number, width: number
+  const out = makeText(size, text, nFC, nBC) as [string[], string[], string[]] & {
+    height: number, width: number
   };
-  out.height = out[1].length;
-  out.width = out[1][0].length;
+  out.height = out[0].length;
+  out.width = out[0][0].length;
   return out;
 }
 
-function GenerateFontSize(size: number) {
-  //if (type(size) != "number") { error("Size needs to be a number",2) } // nope.
+function GenerateFontSize(size: FontSize) {
+  //if (typeof size != "number") { error("Size needs to be a number", 2); } // nope.
   if (size > 6) { return false; }
-  return generateFontSize(math.floor(size), true);
+  return generateFontSize(math.floor(size) as FontSize, true);
 }
 export { GenerateFontSize as generateFontSize };
