@@ -3,10 +3,9 @@
 // Switch to true to replace generic currency sign "\164" with krist symbol.
 const krist = false;
 
-const ____exports = shell ? {} : (_ENV || getfenv());
-____exports.versionName = "Bigfont by Wojbie. Typescript port by Cheatoid";
-____exports.versionNum = 5.003; // 2021-07-21
-//____exports.doc = {}; // nope.
+const ____exports = shell ? {} : (_ENV || getfenv()); // dirty hack to support importing with os.loadAPI / dofile
+export const versionName = "Bigfont by Wojbie. Typescript port by Cheatoid";
+export const versionNum = 5.003; // 2021-07-21
 
 // Font database
 const rawFont = [
