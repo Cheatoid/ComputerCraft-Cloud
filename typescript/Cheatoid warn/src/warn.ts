@@ -3,7 +3,7 @@ export = setmetatable({}, {
   __call: (arg: boolean | Array<string | colors.ColorSet>, noWrap?: boolean, bc?: colors.Color, fc?: colors.Color): void => {
     if (typeof arg == "boolean") {
       warnings = arg;
-    } else { // Thankfully TS is smart, so it knows `arg` is not a boolean at this point (but an array).
+    } else if (warnings) { // Thankfully TS is smart, so it knows `arg` is not a boolean at this point (but an array).
       const [ofc, obc] = [term.getTextColor(), term.getBackgroundColor()];
       if (fc) term.setTextColor(fc);
       if (bc) term.setBackgroundColor(bc);

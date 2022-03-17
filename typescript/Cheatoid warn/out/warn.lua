@@ -5,7 +5,7 @@ local ____exports = setmetatable(
         __call = function(____, arg, noWrap, bc, fc)
             if type(arg) == "boolean" then
                 warnings = arg
-            else
+            elseif warnings then
                 local ofc, obc = term.getTextColor(), term.getBackgroundColor()
                 if fc then
                     term.setTextColor(fc)
