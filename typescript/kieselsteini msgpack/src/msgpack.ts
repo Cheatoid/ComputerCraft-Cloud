@@ -33,7 +33,7 @@ function is_an_array(value: LuaTable) {
   return true;
 }
 
-const encoder_functions = <{ [type: string]: ((this: void, value?: any) => string) }><any>{
+const encoder_functions: { [type: string]: ((this: void, value?: any) => string) } = {
   nil: () => string_pack('B', 0xc0),
   boolean: (value: boolean) => value ? string_pack('B', 0xc3) : string_pack('B', 0xc2),
   number: (value: number) => {
@@ -165,26 +165,26 @@ function decode_map(this: void, data: string, position: number, length: number):
   return $multi(<any>elements, position);
 }
 
-const decoder_functions: Array<((this: void, data: string, position: number) => LuaMultiReturn<[any, number]>)> = <any>{
+const decoder_functions: { [code: number]: ((this: void, data: string, position: number) => LuaMultiReturn<[any, number]>) } = {
   0xc0: (_, position) => $multi(null, position),
   0xc2: (_, position) => $multi(false, position),
   0xc3: (_, position) => $multi(true, position),
-  0xc4: (data, position) => string_unpack('>s1', data, position),
-  0xc5: (data, position) => string_unpack('>s2', data, position),
-  0xc6: (data, position) => string_unpack('>s4', data, position),
-  0xca: (data, position) => string_unpack('>f', data, position),
-  0xcb: (data, position) => string_unpack('>d', data, position),
-  0xcc: (data, position) => string_unpack('>B', data, position),
-  0xcd: (data, position) => string_unpack('>I2', data, position),
-  0xce: (data, position) => string_unpack('>I4', data, position),
-  0xcf: (data, position) => string_unpack('>I8', data, position),
-  0xd0: (data, position) => string_unpack('>b', data, position),
-  0xd1: (data, position) => string_unpack('>i2', data, position),
-  0xd2: (data, position) => string_unpack('>i4', data, position),
-  0xd3: (data, position) => string_unpack('>i8', data, position),
-  0xd9: (data, position) => string_unpack('>s1', data, position),
-  0xda: (data, position) => string_unpack('>s2', data, position),
-  0xdb: (data, position) => string_unpack('>s4', data, position),
+  0xc4: (data, position) => string_unpack('>s1', data, position)[0],
+  0xc5: (data, position) => string_unpack('>s2', data, position)[0],
+  0xc6: (data, position) => string_unpack('>s4', data, position)[0],
+  0xca: (data, position) => string_unpack('>f', data, position)[0],
+  0xcb: (data, position) => string_unpack('>d', data, position)[0],
+  0xcc: (data, position) => string_unpack('>B', data, position)[0],
+  0xcd: (data, position) => string_unpack('>I2', data, position)[0],
+  0xce: (data, position) => string_unpack('>I4', data, position)[0],
+  0xcf: (data, position) => string_unpack('>I8', data, position)[0],
+  0xd0: (data, position) => string_unpack('>b', data, position)[0],
+  0xd1: (data, position) => string_unpack('>i2', data, position)[0],
+  0xd2: (data, position) => string_unpack('>i4', data, position)[0],
+  0xd3: (data, position) => string_unpack('>i8', data, position)[0],
+  0xd9: (data, position) => string_unpack('>s1', data, position)[0],
+  0xda: (data, position) => string_unpack('>s2', data, position)[0],
+  0xdb: (data, position) => string_unpack('>s4', data, position)[0],
   0xdc: (data, position) => {
     let length: number;
     [length, position] = string_unpack('>I2', data, position);
@@ -209,22 +209,22 @@ const decoder_functions: Array<((this: void, data: string, position: number) => 
 
 // add fix-array, fix-map, fix-string, fix-int stuff
 for (const i of $range(0x00, 0x7f)) {
-  decoder_functions[i - 1] = (_, position) => $multi(i, position);
+  decoder_functions[i] = (_, position) => $multi(i, position);
 }
 for (const i of $range(0x80, 0x8f)) {
-  decoder_functions[i - 1] = (data, position) => decode_map(data, position, i - 0x80);
+  decoder_functions[i] = (data, position) => decode_map(data, position, i - 0x80);
 }
 for (const i of $range(0x90, 0x9f)) {
-  decoder_functions[i - 1] = (data, position) => decode_array(data, position, i - 0x90);
+  decoder_functions[i] = (data, position) => decode_array(data, position, i - 0x90);
 }
 for (const i of $range(0xa0, 0xbf)) {
-  decoder_functions[i - 1] = (data, position) => {
+  decoder_functions[i] = (data, position) => {
     const length = i - 0xa0;
     return $multi(string_sub(data, position, position + length - 1), position + length);
   };
 }
 for (const i of $range(0xe0, 0xff)) {
-  decoder_functions[i - 1] = (_, position) => $multi(-32 + (i - 0xe0), position);
+  decoder_functions[i] = (_, position) => $multi(-32 + (i - 0xe0), position);
 }
 decode_value = (data, position) => {
   let byte: number, value: any;

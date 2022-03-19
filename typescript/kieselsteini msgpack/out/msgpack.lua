@@ -207,7 +207,7 @@ decode_value = function(data, position)
     local byte
     local value
     byte, position = string_unpack("B", data, position)
-    value, position = decoder_functions[byte + 1](data, position)
+    value, position = decoder_functions[byte](data, position)
     return value, position
 end
 local ____exports = {
