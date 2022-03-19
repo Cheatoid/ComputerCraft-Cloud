@@ -156,7 +156,7 @@ function decode_array(this: void, data: string, position: number, length: number
 function decode_map(this: void, data: string, position: number, length: number): LuaMultiReturn<[LuaTable, number]> {
   const elements = {};
   let key: any, value: any;
-  for (const i of $range(1, length)) {
+  for (const _ of $range(1, length)) {
     [key, position] = decode_value(data, position);
     [value, position] = decode_value(data, position);
     elements[key] = value;

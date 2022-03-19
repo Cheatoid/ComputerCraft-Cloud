@@ -136,7 +136,7 @@ local function decode_map(data, position, length)
     local elements = {}
     local key
     local value
-    for i = 1, length do
+    for _ = 1, length do
         key, position = decode_value(data, position)
         value, position = decode_value(data, position)
         elements[key] = value
