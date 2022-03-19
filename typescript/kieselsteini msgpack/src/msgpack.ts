@@ -1,5 +1,5 @@
 // Original source code: https://github.com/kieselsteini/msgpack/blob/master/msgpack.lua
-// Ported to TypeScript by Cheatoid.
+// Ported to TypeScript by Cheatoid, tailored for usage with 'ComputerCraft: Tweaked' mod in Minecraft.
 
 const [string_pack, string_unpack] = [string.pack, string.unpack];
 const [math_type, utf8_len, bit_rshift] = [(n: number): 'integer' | 'float' | null => {
@@ -39,75 +39,44 @@ const encoder_functions: { [type: string]: ((this: void, value?: any) => string)
   number: (value: number) => {
     if (math_type(value) == 'integer') {
       if (value >= 0) {
-        if (value <= 0x7f) {
-          return string_pack('B', value);
-        }
-        if (value <= 0xff) {
-          return string_pack('BB', 0xcc, value);
-        }
-        if (value <= 0xffff) {
-          return string_pack('>BI2', 0xcd, value);
-        }
-        if (value <= 0xffffffff) {
-          return string_pack('>BI4', 0xce, value);
-        }
+        if (value <= 0x7f      ) { return string_pack('B', value); }
+        if (value <= 0xff      ) { return string_pack('BB', 0xcc, value); }
+        if (value <= 0xffff    ) { return string_pack('>BI2', 0xcd, value); }
+        if (value <= 0xffffffff) { return string_pack('>BI4', 0xce, value); }
         return string_pack('>BI8', 0xcf, value);
       }
-      if (value >= -32) {
-        return string_pack('B', 0xe0 + (value + 32));
-      }
-      if (value >= -128) {
-        return string_pack('Bb', 0xd0, value);
-      }
-      if (value >= -32768) {
-        return string_pack('>Bi2', 0xd1, value);
-      }
-      if (value >= -2147483648) {
-        return string_pack('>Bi4', 0xd2, value);
-      }
+      if (value >= -32        ) { return string_pack('B', 0xe0 + (value + 32)); }
+      if (value >= -128       ) { return string_pack('Bb', 0xd0, value); }
+      if (value >= -32768     ) { return string_pack('>Bi2', 0xd1, value); }
+      if (value >= -2147483648) { return string_pack('>Bi4', 0xd2, value); }
       return string_pack('>Bi8', 0xd3, value);
     }
     const [test] = string_unpack('f', string_pack('f', value));
-    if (test == value) { // check if we can use float
-      return string_pack('>Bf', 0xca, value);
-    }
-    return string_pack('>Bd', 0xcb, value);
+    return test == value // check if we can use float
+           ? string_pack('>Bf', 0xca, value)
+           : string_pack('>Bd', 0xcb, value);
   },
   string: (value: string) => {
     const len = value.length;
     if (utf8_len(value)) { // check if it is a real utf8 string or just byte junk
-      if (len < 32) {
-        return string_pack('B', 0xa0 + len) + value;
-      }
-      if (len < 256) {
-        return string_pack('>Bs1', 0xd9, value);
-      }
-      if (len < 65536) {
-        return string_pack('>Bs2', 0xda, value);
-      }
+      if (len < 32   ) { return string_pack('B', 0xa0 + len) + value; }
+      if (len < 256  ) { return string_pack('>Bs1', 0xd9, value); }
+      if (len < 65536) { return string_pack('>Bs2', 0xda, value); }
       return string_pack('>Bs4', 0xdb, value);
     }
-    if (len < 256) {
-      return string_pack('>Bs1', 0xc4, value);
-    }
-    if (len < 65536) {
-      return string_pack('>Bs2', 0xc5, value);
-    }
+    if (len < 256  ) { return string_pack('>Bs1', 0xc4, value); }
+    if (len < 65536) { return string_pack('>Bs2', 0xc5, value); }
     return string_pack('>Bs4', 0xc6, value);
   },
-  table: (value: LuaTable<number, string>) => {
+  table: (value: LuaTable) => {
     if (is_an_array(<any>value)) { // it seems to be a proper Lua array
       const elements = [];
-      for (const [i, v] of value) {
+      for (const [i, v] of <LuaTable<number, any>><any>value) {
         elements[i - 1] = encode_value(v);
       }
       const length = elements.length;
-      if (length < 16) {
-        return string_pack('>B', 0x90 + length) + table_concat(elements);
-      }
-      if (length < 65536) {
-        return string_pack('>BI2', 0xdc, length) + table_concat(elements);
-      }
+      if (length < 16   ) { return string_pack('>B', 0x90 + length) + table_concat(elements); }
+      if (length < 65536) { return string_pack('>BI2', 0xdc, length) + table_concat(elements); }
       return string_pack('>BI4', 0xdd, length) + table_concat(elements);
     }
     // encode as a map
@@ -117,12 +86,8 @@ const encoder_functions: { [type: string]: ((this: void, value?: any) => string)
       elements[elements.length] = encode_value(v);
     }
     const length = bit_rshift(elements.length, 1); // note: integer division, not sure if it is really necessary
-    if (length < 16) {
-      return string_pack('>B', 0x80 + length) + table_concat(elements);
-    }
-    if (length < 65536) {
-      return string_pack('>BI2', 0xde, length) + table_concat(elements);
-    }
+    if (length < 16   ) { return string_pack('>B', 0x80 + length) + table_concat(elements); }
+    if (length < 65536) { return string_pack('>BI2', 0xde, length) + table_concat(elements); }
     return string_pack('>BI4', 0xdf, length) + table_concat(elements);
   }
 };

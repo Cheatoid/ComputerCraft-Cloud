@@ -57,10 +57,7 @@ local encoder_functions = {
             "f",
             string_pack("f", value)
         )
-        if test == value then
-            return string_pack(">Bf", 202, value)
-        end
-        return string_pack(">Bd", 203, value)
+        return test == value and string_pack(">Bf", 202, value) or string_pack(">Bd", 203, value)
     end,
     string = function(value)
         local len = #value
