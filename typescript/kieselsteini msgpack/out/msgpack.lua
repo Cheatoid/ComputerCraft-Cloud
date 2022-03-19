@@ -238,7 +238,7 @@ local ____exports = {
         local ok
         position = position or 1
         while position <= #data do
-            ok, value, position = unpack({____pcall(decode_value, data, position)})
+            ok, value, position = ____pcall(decode_value, data, position)
             if ok then
                 values[#values + 1] = value
             else
@@ -250,7 +250,7 @@ local ____exports = {
     decode_one = function(data, position)
         local value
         local ok
-        ok, value, position = unpack({____pcall(decode_value, data, position or 1)})
+        ok, value, position = ____pcall(decode_value, data, position or 1)
         if ok then
             return value, position
         end

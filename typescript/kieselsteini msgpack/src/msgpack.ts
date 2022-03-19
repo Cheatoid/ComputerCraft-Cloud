@@ -239,7 +239,7 @@ export = {
     let value: any, ok: boolean;
     position = position || 1; //position ??= 1;
     while (position <= data.length) {
-      [ok, value, position] = <LuaMultiReturn<[boolean, any, number]>><any>pcall(decode_value, data, position);
+      [ok, value, position] = <any>pcall(decode_value, data, position)[0];
       if (ok) {
         values[values.length] = value;
       } else {
@@ -254,7 +254,7 @@ export = {
    */
   decode_one: (data: string, position?: number): LuaMultiReturn<[null, string] | [any, number]> => {
     let value: any, ok: boolean;
-    [ok, value, position] = <LuaMultiReturn<[boolean, any, number]>><any>pcall(decode_value, data, position || 1);
+    [ok, value, position] = <any>pcall(decode_value, data, position || 1)[0];
     if (ok) {
       return $multi(value, position);
     }
