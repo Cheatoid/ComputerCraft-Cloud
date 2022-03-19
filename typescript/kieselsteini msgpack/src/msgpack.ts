@@ -2,7 +2,7 @@
 // Ported to TypeScript by Cheatoid.
 
 const [string_pack, string_unpack] = [string.pack, string.unpack];
-const [math_type, utf8_len] = [(n: number): 'integer' | 'float' | null => {
+const [math_type, utf8_len, bit_rshift] = [(n: number): 'integer' | 'float' | null => {
   if (typeof n == 'number') {
     return n == n && // nan
       n != math.huge && n != -math.huge && // inf / -inf
@@ -11,7 +11,7 @@ const [math_type, utf8_len] = [(n: number): 'integer' | 'float' | null => {
       : 'float';
   }
   return null;
-}, utf8.len];
+}, utf8.len, bit32 ? bit32.rshift : bit.blogic_rshift];
 const [table_concat, table_unpack] = [table.concat, table.unpack || unpack];
 const string_sub = string.sub;
 const [type, pcall, select] = [_G.type, _G.pcall, _G.select];
@@ -66,13 +66,12 @@ const encoder_functions: { [type: string]: ((this: void, value?: any) => string)
         return string_pack('>Bi4', 0xd2, value);
       }
       return string_pack('>Bi8', 0xd3, value);
-    } else {
-      const [test] = string_unpack('f', string_pack('f', value));
-      if (test == value) { // check if we can use float
-        return string_pack('>Bf', 0xca, value);
-      }
-      return string_pack('>Bd', 0xcb, value);
     }
+    const [test] = string_unpack('f', string_pack('f', value));
+    if (test == value) { // check if we can use float
+      return string_pack('>Bf', 0xca, value);
+    }
+    return string_pack('>Bd', 0xcb, value);
   },
   string: (value: string) => {
     const len = value.length;
@@ -117,7 +116,7 @@ const encoder_functions: { [type: string]: ((this: void, value?: any) => string)
       elements[elements.length] = encode_value(k);
       elements[elements.length] = encode_value(v);
     }
-    const length = elements.length * 0.5; // note: integer division, not sure if it is really necessary
+    const length = bit_rshift(elements.length, 1); // note: integer division, not sure if it is really necessary
     if (length < 16) {
       return string_pack('>B', 0x80 + length) + table_concat(elements);
     }

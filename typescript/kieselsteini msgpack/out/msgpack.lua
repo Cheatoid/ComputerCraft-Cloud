@@ -1,10 +1,10 @@
 local string_pack, string_unpack = string.pack, string.unpack
-local math_type, utf8_len = function(n)
+local math_type, utf8_len, bit_rshift = function(n)
     if type(n) == "number" then
         return n == n and n ~= math.huge and n ~= -math.huge and n == math.floor(n) and n % 1 == 0 and "integer" or "float"
     end
     return nil
-end, utf8.len
+end, utf8.len, bit32 and bit32.rshift or bit.blogic_rshift
 local table_concat, table_unpack = table.concat, table.unpack or unpack
 local string_sub = string.sub
 local ____type, ____pcall, select = _G.type, _G.pcall, _G.select
@@ -52,16 +52,15 @@ local encoder_functions = {
                 return string_pack(">Bi4", 210, value)
             end
             return string_pack(">Bi8", 211, value)
-        else
-            local test = string_unpack(
-                "f",
-                string_pack("f", value)
-            )
-            if test == value then
-                return string_pack(">Bf", 202, value)
-            end
-            return string_pack(">Bd", 203, value)
         end
+        local test = string_unpack(
+            "f",
+            string_pack("f", value)
+        )
+        if test == value then
+            return string_pack(">Bf", 202, value)
+        end
+        return string_pack(">Bd", 203, value)
     end,
     string = function(value)
         local len = #value
@@ -105,7 +104,7 @@ local encoder_functions = {
             elements[#elements + 1] = encode_value(k)
             elements[#elements + 1] = encode_value(v)
         end
-        local length = #elements * 0.5
+        local length = bit_rshift(#elements, 1)
         if length < 16 then
             return string_pack(">B", 128 + length) .. table_concat(elements)
         end
