@@ -26,7 +26,7 @@ function ____exports.single(eventName, callback)
         end
     )
 end
-local function run(eventName, ...)
+local function call(eventName, ...)
     local e = hooks[eventName]
     if e then
         for _, callback in pairs(e) do
@@ -34,13 +34,30 @@ local function run(eventName, ...)
         end
     end
 end
-parallel.waitForAny(
-    function()
-        while true do
-            run(coroutine_yield())
-        end
-    end,
-    function()
+local callerSource = debug.getinfo(2).source
+local running = false
+function ____exports.run()
+    if running then
+        error("hook is already running", 2)
     end
-)
+    running = true
+    parallel.waitForAny(
+        function()
+            while true do
+                call(coroutine_yield())
+            end
+        end,
+        function()
+            if callerSource == "@bios.lua" then
+                os.run(
+                    {},
+                    term.isColor() and settings.get("bios.use_multishell") and "rom/programs/advanced/multishell.lua" or "rom/programs/shell.lua"
+                )
+                os.run({}, "rom/programs/shutdown.lua")
+            else
+                shell.run(multishell and "multishell" or "shell")
+            end
+        end
+    )
+end
 return ____exports

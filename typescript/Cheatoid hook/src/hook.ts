@@ -664,11 +664,11 @@ export function single<TEvent extends keyof Events>(this: void, eventName: TEven
 }
 
 /**
- * For internal use only. Dirty bit, not particularly type safe.
+ * For internal use only. Dirty bit, not particularly type-safe.
  * @param eventName Name of the event to be fired.
  * @param args Arguments to be passed to hook handlers.
  */
-function run(this: void, eventName: string, ...args: any[]): void {
+function call(this: void, eventName: string, ...args: any[]): void {
   // TODO: Maybe inline this whole function into the event loop below, as it is the only usage.
   const e = <LuaTable<string, (this: void, ...args: any[]) => void>>hooks.get(eventName);
   if (e) {
@@ -680,9 +680,26 @@ function run(this: void, eventName: string, ...args: any[]): void {
 }
 
 //assert(coroutine.running() == null, "must be loaded on the top-level coroutine");
-parallel.waitForAny(() => {
-  // Run the event loop.
-  while (true) {
-    run(coroutine_yield()[0]);
-  }
-}, () => { });
+const callerSource = debug.getinfo(2).source;
+let running = false;
+
+/**
+ * Bootstrapper.
+ */
+export function run(this: void): void {
+  if (running) error("hook is already running", 2);
+  running = true;
+  parallel.waitForAny(() => {
+    // Run the event loop.
+    while (true) {
+      call(coroutine_yield()[0]);
+    }
+  }, () => {
+    if (callerSource == "@bios.lua") {
+      os.run({}, term.isColor() && settings.get("bios.use_multishell") ? "rom/programs/advanced/multishell.lua" : "rom/programs/shell.lua");
+      os.run({}, "rom/programs/shutdown.lua");
+    } else {
+      shell.run(multishell ? "multishell" : "shell");
+    }
+  });
+}
